@@ -14,14 +14,8 @@ This project provides a real-time running analysis tool using computer vision an
 - Video recording and playback functionality
 
 ## Requirements
-- Python 3.7+
-- OpenCV
-- TensorFlow
-- PyTorch
-- MediaPipe
-- PyQt5
-- NumPy
-- pyttsx3
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
 
 ## Installation
 1. Clone the repository:
@@ -32,7 +26,7 @@ This project provides a real-time running analysis tool using computer vision an
 
 2. Install the required dependencies:
    ```
-   pip install -r requirements.txt
+   uv sync
    ```
 
 3. Download the necessary model files and place them in the `models/` directory.
@@ -41,13 +35,30 @@ This project provides a real-time running analysis tool using computer vision an
 Run the main script with desired options:
 
 ```
-python main.py --model_type blazepose --side left --runner_height 182
+uv run python main.py --model_type blazepose --side right --runner_height 182
 ```
 
 Options:
 - `--model_type`: Choose from 'movenet', 'blazepose', or 'lite_hrnet' (default: blazepose)
-- `--side`: 'left' or 'right', depending on which side of the runner is facing the camera (default: left)
+- `--side`: 'left' or 'right', depending on which side of the runner is facing the camera (default: right)
 - `--runner_height`: Height of the runner in cm (default: 182)
+
+## Keypoint Mapping
+All models output keypoints using the [COCO 17-keypoint format](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml):
+
+| Index | Keypoint        | Index | Keypoint        |
+|-------|-----------------|-------|-----------------|
+| 0     | nose            | 9     | left_wrist      |
+| 1     | left_eye        | 10    | right_wrist     |
+| 2     | right_eye       | 11    | left_hip        |
+| 3     | left_ear        | 12    | right_hip       |
+| 4     | right_ear       | 13    | left_knee       |
+| 5     | left_shoulder   | 14    | right_knee      |
+| 6     | right_shoulder  | 15    | left_ankle      |
+| 7     | left_elbow      | 16    | right_ankle     |
+| 8     | right_elbow     |       |                 |
+
+BlazePose natively uses 33 landmarks but is converted to this format via `BlazePoseModel._convert_to_movenet_format()`.
 
 ## Key Components
 - `core/analyzer.py`: Main analysis loop and frame processing

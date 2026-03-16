@@ -1,8 +1,18 @@
 import sys
 import cv2
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QSlider, QHBoxLayout, QVBoxLayout, QComboBox
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QSlider,
+    QHBoxLayout,
+    QVBoxLayout,
+    QComboBox,
+)
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt, QTimer
+
 
 class VideoPlayer(QWidget):
     def __init__(self, video_path):
@@ -20,7 +30,7 @@ class VideoPlayer(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle('Video Player')
+        self.setWindowTitle("Video Player")
         self.setGeometry(100, 100, 800, 600)
 
         # Video display
@@ -33,24 +43,24 @@ class VideoPlayer(QWidget):
         self.slider.sliderMoved.connect(self.slider_moved)
 
         # Buttons
-        self.play_pause_button = QPushButton('Play')
+        self.play_pause_button = QPushButton("Play")
         self.play_pause_button.clicked.connect(self.play_pause)
 
-        self.rewind_button = QPushButton('Rewind')
+        self.rewind_button = QPushButton("Rewind")
         self.rewind_button.clicked.connect(self.rewind)
 
         # Playback speed dropdown
         self.speed_combo = QComboBox()
-        speeds = ['0.25x', '0.5x', '0.75x', '1x', '1.25x', '1.5x', '2x']
+        speeds = ["0.25x", "0.5x", "0.75x", "1x", "1.25x", "1.5x", "2x"]
         self.speed_combo.addItems(speeds)
-        self.speed_combo.setCurrentText('1x')
+        self.speed_combo.setCurrentText("1x")
         self.speed_combo.currentTextChanged.connect(self.change_playback_speed)
 
         # Layout
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.rewind_button)
         button_layout.addWidget(self.play_pause_button)
-        button_layout.addWidget(QLabel('Speed:'))
+        button_layout.addWidget(QLabel("Speed:"))
         button_layout.addWidget(self.speed_combo)
 
         main_layout = QVBoxLayout()
@@ -69,8 +79,11 @@ class VideoPlayer(QWidget):
             h, w, ch = frame.shape
             bytes_per_line = ch * w
             q_image = QImage(frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
-            self.video_label.setPixmap(QPixmap.fromImage(q_image).scaled(
-                self.video_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            self.video_label.setPixmap(
+                QPixmap.fromImage(q_image).scaled(
+                    self.video_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
             self.slider.setValue(self.current_frame)
 
     def next_frame(self):
@@ -83,14 +96,16 @@ class VideoPlayer(QWidget):
     def play_pause(self):
         if self.playing:
             self.timer.stop()
-            self.play_pause_button.setText('Play')
+            self.play_pause_button.setText("Play")
         else:
             self.timer.start(int(1000 / (self.fps * self.playback_speed)))
-            self.play_pause_button.setText('Pause')
+            self.play_pause_button.setText("Pause")
         self.playing = not self.playing
 
     def rewind(self):
-        self.current_frame = max(0, self.current_frame - int(self.fps * 5))  # Rewind 5 seconds
+        self.current_frame = max(
+            0, self.current_frame - int(self.fps * 5)
+        )  # Rewind 5 seconds
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame)
         self.show_frame()
 
@@ -106,7 +121,8 @@ class VideoPlayer(QWidget):
 
     def closeEvent(self, event):
         self.cap.release()
-        event.accept() 
+        event.accept()
+
 
 def play_video(video_path):
     app = QApplication.instance()
@@ -117,6 +133,7 @@ def play_video(video_path):
     app.exec_()
 
     return
+
 
 if __name__ == "__main__":
     play_video("path_to_your_video.mp4")

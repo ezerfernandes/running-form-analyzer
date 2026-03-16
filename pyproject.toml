@@ -1,0 +1,25 @@
+[project]
+name = "running-form-analyzer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mediapipe>=0.10.32",
+    "numpy>=2.4.3",
+    "opencv-python>=4.13.0.92",
+    "pyqt5>=5.15.11",
+    "pyttsx3>=2.99",
+    "tensorflow>=2.21.0",
+    "torch>=2.10.0",
+]
+
+[tool.coverage.run]
+omit = ["tests/*", "main.py"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.6",
+]

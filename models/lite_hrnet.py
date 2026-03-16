@@ -1,14 +1,23 @@
-
-
 import cv2
 import numpy as np
 import torch
 from torch import nn
 
+
 class ConvBNReLU(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1):
+    def __init__(
+        self, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1
+    ):
         super(ConvBNReLU, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, groups=groups, bias=False)
+        self.conv = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            groups=groups,
+            bias=False,
+        )
         self.bn = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
 
@@ -17,6 +26,7 @@ class ConvBNReLU(nn.Module):
         x = self.bn(x)
         x = self.relu(x)
         return x
+
 
 class ShuffleUnit(nn.Module):
     def __init__(self, in_channels, out_channels, groups=2):
@@ -32,21 +42,37 @@ class ShuffleUnit(nn.Module):
         x = x.view(b, -1, h, w)
         return x
 
+
 class LiteHRModule(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1):
         super(LiteHRModule, self).__init__()
         self.branch1 = nn.Sequential(
-            ConvBNReLU(in_channels, in_channels, kernel_size=3, stride=stride, padding=1, groups=in_channels),
-            ConvBNReLU(in_channels, out_channels, kernel_size=1)
+            ConvBNReLU(
+                in_channels,
+                in_channels,
+                kernel_size=3,
+                stride=stride,
+                padding=1,
+                groups=in_channels,
+            ),
+            ConvBNReLU(in_channels, out_channels, kernel_size=1),
         )
         self.branch2 = nn.Sequential(
             ConvBNReLU(in_channels, out_channels, kernel_size=1),
-            ConvBNReLU(out_channels, out_channels, kernel_size=3, stride=stride, padding=1, groups=out_channels),
-            ConvBNReLU(out_channels, out_channels, kernel_size=1)
+            ConvBNReLU(
+                out_channels,
+                out_channels,
+                kernel_size=3,
+                stride=stride,
+                padding=1,
+                groups=out_channels,
+            ),
+            ConvBNReLU(out_channels, out_channels, kernel_size=1),
         )
 
     def forward(self, x):
         return self.branch1(x) + self.branch2(x)
+
 
 class LiteHRNet(nn.Module):
     def __init__(self, num_joints):
@@ -58,24 +84,26 @@ class LiteHRNet(nn.Module):
             LiteHRModule(64, 64),
             LiteHRModule(64, 64),
             LiteHRModule(64, 64),
-            LiteHRModule(64, 64)
+            LiteHRModule(64, 64),
         )
 
         self.stage2 = nn.Sequential(
             LiteHRModule(64, 128, stride=2),
             LiteHRModule(128, 128),
             LiteHRModule(128, 128),
-            LiteHRModule(128, 128)
+            LiteHRModule(128, 128),
         )
 
         self.stage3 = nn.Sequential(
             LiteHRModule(128, 256, stride=2),
             LiteHRModule(256, 256),
             LiteHRModule(256, 256),
-            LiteHRModule(256, 256)
+            LiteHRModule(256, 256),
         )
 
-        self.final_layer = nn.Conv2d(256, num_joints, kernel_size=1, stride=1, padding=0)
+        self.final_layer = nn.Conv2d(
+            256, num_joints, kernel_size=1, stride=1, padding=0
+        )
 
     def forward(self, x):
         x = self.conv1(x)
@@ -86,10 +114,11 @@ class LiteHRNet(nn.Module):
         x = self.final_layer(x)
         return x
 
+
 class LiteHRNetModel:
-    def __init__(self, config):
+    def __init__(self, config=None):
         self.model = LiteHRNet(num_joints=17)  # Assuming 17 joints for COCO format
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.model.eval()
 

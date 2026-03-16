@@ -2,6 +2,7 @@ import pyttsx3
 from threading import Thread
 import time
 
+
 class AudioFeedbackProvider:
     def __init__(self):
         self.engine = pyttsx3.init()
@@ -21,7 +22,10 @@ class AudioFeedbackProvider:
 
     def add_feedback(self, message: str, cooldown: int = 10):
         current_time = time.time()
-        if message not in self.last_feedback_time or (current_time - self.last_feedback_time[message]) > cooldown:
+        if (
+            message not in self.last_feedback_time
+            or (current_time - self.last_feedback_time[message]) > cooldown
+        ):
             self.feedback_queue.append(message)
             self.last_feedback_time[message] = current_time
 
