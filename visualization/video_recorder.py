@@ -6,8 +6,9 @@ from visualization.video_player import play_video
 
 
 class VideoRecorder:
-    def __init__(self, output_dir="tests/videos"):
+    def __init__(self, output_dir="tests/videos", fps=30.0):
         self.output_dir = output_dir
+        self.fps = float(fps) if fps and fps > 0 else 30.0
         self.video_writer = None
         self.recording = False
         self.frame_size = None
@@ -23,8 +24,16 @@ class VideoRecorder:
             self.output_filename = f"{self.output_dir}/run_video_{current_time}.mp4"
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             self.video_writer = cv2.VideoWriter(
-                self.output_filename, fourcc, 30.0, self.frame_size
+                self.output_filename, fourcc, self.fps, self.frame_size
             )
+            if not self.video_writer.isOpened():
+                self.video_writer = None
+                self.output_filename = None
+                self.frame_size = None
+                raise RuntimeError(
+                    "Failed to open VideoWriter (mp4v codec unavailable or "
+                    f"output path not writable): {self.output_dir}"
+                )
             self.recording = True
             print(f"Started recording: {self.output_filename}")
 

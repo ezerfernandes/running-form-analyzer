@@ -20,3 +20,6 @@ class MoveNetModel:
         )
         self.interpreter.invoke()
         return self.interpreter.get_tensor(self.output_details[0]["index"])[0]
+
+    def close(self):
+        self.interpreter = None

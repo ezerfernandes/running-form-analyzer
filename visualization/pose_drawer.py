@@ -22,7 +22,7 @@ def draw_connections(frame, keypoints, confidence_threshold):
         y1, x1, c1 = shaped[p1]
         y2, x2, c2 = shaped[p2]
 
-        if (c1 > confidence_threshold) & (c2 > confidence_threshold):
+        if (c1 > confidence_threshold) and (c2 > confidence_threshold):
             cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
 
     return frame

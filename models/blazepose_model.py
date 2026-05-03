@@ -1,9 +1,12 @@
 import os
+import shutil
 import urllib.request
 
 import cv2
 import mediapipe as mp
 import numpy as np
+
+_DOWNLOAD_TIMEOUT_S = 30
 
 _MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
 _MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,9 +28,23 @@ class BlazePoseModel:
 
     @staticmethod
     def _ensure_model():
-        if not os.path.exists(_MODEL_PATH):
-            print(f"Downloading pose landmarker model to {_MODEL_PATH}...")
-            urllib.request.urlretrieve(_MODEL_URL, _MODEL_PATH)
+        if os.path.exists(_MODEL_PATH):
+            return
+        print(f"Downloading pose landmarker model to {_MODEL_PATH}...")
+        # urllib.request.urlretrieve has no timeout kwarg, so stream via urlopen
+        # to bound network hangs. Write to a tmp file first to avoid leaving a
+        # truncated model behind if the download fails midway.
+        tmp_path = _MODEL_PATH + ".part"
+        try:
+            with urllib.request.urlopen(
+                _MODEL_URL, timeout=_DOWNLOAD_TIMEOUT_S
+            ) as response, open(tmp_path, "wb") as out:
+                shutil.copyfileobj(response, out)
+            os.replace(tmp_path, _MODEL_PATH)
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise
 
     def close(self):
         self.landmarker.close()

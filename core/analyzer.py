@@ -9,7 +9,6 @@ from models.movenet import MoveNetModel
 from visualization.video_recorder import VideoRecorder
 from core.config import THUNDER_PATH, Config
 from models.blazepose_model import BlazePoseModel
-from models.lite_hrnet import LiteHRNetModel
 from core.detector import extract_keypoints, get_valid_keypoints
 from visualization.pose_drawer import draw_connections, draw_keypoints
 
@@ -20,18 +19,21 @@ class Analyzer:
         model_type = config.model_type
         self.side = config.side
         self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            raise RuntimeError(
+                "Camera unavailable: cv2.VideoCapture(0) failed to open. "
+                "Check camera connection and OS permissions."
+            )
+        source_fps = self.cap.get(cv2.CAP_PROP_FPS) or 30.0
         self.start_time = time.time()
         self.frame_count = 0
         self.display_mode = "metrics"
         self.metrics_calculator = Metrics(config)
         self.metrics_logger = MetricsLogger()
-        self.video_recorder = VideoRecorder()
+        self.video_recorder = VideoRecorder(fps=source_fps)
 
         if model_type == "blazepose":
             self.model = BlazePoseModel()
-        elif model_type == "lite_hrnet":
-            # TODO: fix this
-            self.model = LiteHRNetModel()
         elif model_type == "movenet":
             self.model = MoveNetModel(THUNDER_PATH)
         else:

@@ -10,11 +10,24 @@ class TestConfig:
         assert config.side == "left"
         assert config.model_type == "blazepose"
         assert config.runner_height == 182
+        assert config.sex == "male"  # Default applied when args lack --sex
+
+    def test_from_args_with_sex(self):
+        args = Namespace(
+            side="right", model_type="movenet", runner_height=170, sex="female"
+        )
+        config = Config.from_args(args)
+        assert config.sex == "female"
 
     def test_to_dict(self):
         config = Config(side="right", model_type="movenet", runner_height=175)
         d = config.to_dict()
-        assert d == {"side": "right", "model_type": "movenet", "runner_height": 175}
+        assert d == {
+            "side": "right",
+            "model_type": "movenet",
+            "runner_height": 175,
+            "sex": "male",
+        }
 
     def test_constants(self):
         assert HFOV_DEG == 74

@@ -50,7 +50,7 @@ class AssessmentCalculator:
             return "Need Improvement"
         elif 60 <= angle <= 90:
             return "Good"
-        elif 89 < angle <= 95:
+        elif 90 < angle <= 95:
             return "Need Improvement"
         else:
             return "Bad"

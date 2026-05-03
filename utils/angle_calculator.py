@@ -9,7 +9,9 @@ class AngleCalculator:
     def calculate_angle(vector1: np.ndarray, vector2: np.ndarray) -> float:
         dot_product = np.dot(vector1, vector2)
         magnitudes = np.linalg.norm(vector1) * np.linalg.norm(vector2)
-        return np.degrees(np.arccos(dot_product / magnitudes))
+        if magnitudes == 0:
+            return 0.0
+        return np.degrees(np.arccos(np.clip(dot_product / magnitudes, -1.0, 1.0)))
 
     @staticmethod
     def calculate_all_angles(

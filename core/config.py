@@ -1,4 +1,5 @@
 # Known parameters
+import os
 from dataclasses import dataclass
 from typing import Dict
 
@@ -8,17 +9,17 @@ class Config:
     side: str
     model_type: str
     runner_height: float
-    # filter_type: str
-    # detection_axis: str
+    sex: str = "male"  # Drives anthropometric ratios (e.g. torso length).
 
     @classmethod
     def from_args(cls, args):
+        # getattr lets older callers (and tests) build a Config from a
+        # Namespace that doesn't carry --sex; the dataclass default applies.
         return cls(
             side=args.side,
             model_type=args.model_type,
             runner_height=args.runner_height,
-            # filter_type=args.filter_type,
-            # detection_axis=args.detection_axis
+            sex=getattr(args, "sex", "male"),
         )
 
     def to_dict(self) -> Dict[str, str | float]:
@@ -26,8 +27,7 @@ class Config:
             "side": self.side,
             "model_type": self.model_type,
             "runner_height": self.runner_height,
-            # 'filter_type': self.filter_type,
-            # 'detection_axis': self.detection_axis
+            "sex": self.sex,
         }
 
 
@@ -35,9 +35,11 @@ class Config:
 HFOV_DEG = 74  # Horizontal field of view in degrees
 IMAGE_WIDTH_PX = 1280  # Image width in pixels
 
-# Download models folder in directory
-THUNDER_PATH = "models/thunder-float32.tflite"
-LIGHTNING_PATH = "models/lightning-float32.tflite"
+# Anchor model paths to the repo root so `python main.py` works from any CWD
+# (this file lives in <repo>/core/, so the repo root is one level up).
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+THUNDER_PATH = os.path.join(_REPO_ROOT, "models", "thunder-float32.tflite")
+LIGHTNING_PATH = os.path.join(_REPO_ROOT, "models", "lightning-float32.tflite")
 
 # edges for the pose graph
 EDGES = {

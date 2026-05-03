@@ -146,3 +146,8 @@ class LiteHRNetModel:
             confidence = heatmap[y, x]
             keypoints.append([x, y, confidence])
         return np.array(keypoints).reshape(1, -1, 3)
+
+    def close(self):
+        self.model = None
+        if self.device.type == "cuda":
+            torch.cuda.empty_cache()

@@ -8,12 +8,13 @@ class AudioFeedbackProvider:
         self.engine = pyttsx3.init()
         self.feedback_queue = []
         self.last_feedback_time = {}
+        self.is_running = True
         self.feedback_thread = Thread(target=self._feedback_loop)
         self.feedback_thread.daemon = True
         self.feedback_thread.start()
 
     def _feedback_loop(self):
-        while True:
+        while self.is_running:
             if self.feedback_queue:
                 feedback = self.feedback_queue.pop(0)
                 self.engine.say(feedback)
@@ -30,4 +31,7 @@ class AudioFeedbackProvider:
             self.last_feedback_time[message] = current_time
 
     def stop(self):
+        self.is_running = False
         self.engine.stop()
+        if self.feedback_thread.is_alive():
+            self.feedback_thread.join(timeout=2)

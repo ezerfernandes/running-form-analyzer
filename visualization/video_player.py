@@ -19,15 +19,23 @@ class VideoPlayer(QWidget):
         super().__init__()
         self.video_path = video_path
         self.cap = cv2.VideoCapture(self.video_path)
-        self.frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.current_frame = 0
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.next_frame)
-        self.playing = False
-        self.playback_speed = 1.0
+        # If anything below raises, closeEvent never runs, so the capture
+        # handle would leak. Guard with try/except and release on failure.
+        try:
+            if not self.cap.isOpened():
+                raise IOError(f"Could not open video: {video_path}")
+            self.frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+            self.current_frame = 0
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.next_frame)
+            self.playing = False
+            self.playback_speed = 1.0
 
-        self.init_ui()
+            self.init_ui()
+        except Exception:
+            self.cap.release()
+            raise
 
     def init_ui(self):
         self.setWindowTitle("Video Player")
@@ -120,7 +128,8 @@ class VideoPlayer(QWidget):
         self.show_frame()
 
     def closeEvent(self, event):
-        self.cap.release()
+        if self.cap is not None and self.cap.isOpened():
+            self.cap.release()
         event.accept()
 
 
@@ -129,10 +138,14 @@ def play_video(video_path):
     if app is None:
         app = QApplication(sys.argv)
     player = VideoPlayer(video_path)
-    player.show()
-    app.exec_()
-
-    return
+    try:
+        player.show()
+        app.exec_()
+    finally:
+        # Guarantee the capture handle is released even if exec_ raises or the
+        # window is dismissed without going through closeEvent.
+        if getattr(player, "cap", None) is not None and player.cap.isOpened():
+            player.cap.release()
 
 
 if __name__ == "__main__":

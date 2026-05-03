@@ -11,7 +11,7 @@ def parse_arguments():
         "--model_type",
         type=str,
         default="blazepose",
-        choices=["movenet", "blazepose", "lite_hrnet"],
+        choices=["movenet", "blazepose"],
         help="Type of pose estimation model to use",
     )
     parser.add_argument(
@@ -24,9 +24,13 @@ def parse_arguments():
     parser.add_argument(
         "--runner_height", type=float, default=182, help="Height of the runner in cm"
     )
-    # parser.add_argument('--model_path', type=str, default=THUNDER_PATH, help="Path to the model (for MoveNet)")
-    # parser.add_argument('--filter_type', type=str, default='kalman', choices=['temporal', 'kalman', 'none'], help="Type of filter to use for foot strike detection")
-    # parser.add_argument('--detection_axis', type=str, default='x', choices=['x', 'y'], help="Axis to use for foot strike detection (x: horizontal, y: vertical)")
+    parser.add_argument(
+        "--sex",
+        type=str,
+        default="male",
+        choices=["male", "female"],
+        help="Runner sex; selects the torso-length anthropometric ratio.",
+    )
     return parser.parse_args()
 
 

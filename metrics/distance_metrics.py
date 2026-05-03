@@ -9,18 +9,21 @@ HFOV_RAD = np.radians(HFOV_DEG)
 FOCAL_LENGTH_PX = (IMAGE_WIDTH_PX / 2) / np.tan(HFOV_RAD / 2)
 
 
+# Torso-length-as-fraction-of-stature anthropometric ratios.
+_TORSO_RATIO_BY_SEX = {"male": 0.30, "female": 0.29}
+
+
 class DistanceMetrics:
     def __init__(self, config: Config):
         self.hip_positions = deque(maxlen=10)
         self.current_distance = 0.0
-        self.runner_height_cm = (
-            config.runner_height
-        )  # Assuming 'runner_height' is the attribute in config
+        self.runner_height_cm = config.runner_height
+        self.sex = getattr(config, "sex", "male")
         self.torso_length_cm = self.calculate_torso_length(self.runner_height_cm)
 
     def calculate_torso_length(self, runner_height_cm):
-        # Assuming the torso is approximately 30% for males and 29% for females
-        return runner_height_cm * 0.3
+        ratio = _TORSO_RATIO_BY_SEX.get(self.sex, _TORSO_RATIO_BY_SEX["male"])
+        return runner_height_cm * ratio
 
     def calculate(
         self, valid_keypoints: Dict[int, np.ndarray], metrics: Dict[str, any]
@@ -29,6 +32,9 @@ class DistanceMetrics:
         self.calculate_vertical_oscillation(metrics)
 
     def update_distance(self, valid_keypoints: Dict[int, np.ndarray]):
+        # Invalidate every frame so a stale depth from earlier never feeds
+        # the cm/px scale when the current frame lacks torso keypoints.
+        self.current_distance = 0.0
         if all(i in valid_keypoints for i in [5, 6, 11, 12]):
             shoulder_midpoint = (valid_keypoints[5] + valid_keypoints[6]) / 2
             hip_midpoint = (valid_keypoints[11] + valid_keypoints[12]) / 2
@@ -43,14 +49,26 @@ class DistanceMetrics:
             self.hip_positions.append(hip_midpoint[1])
 
     def calculate_vertical_oscillation(self, metrics: Dict[str, any]):
-        if len(self.hip_positions) < 2:
+        kernel_size = 5
+        # Need at least `kernel_size` samples for np.convolve(..., "valid") to
+        # return a non-empty array, and a fresh depth estimate so the px→cm
+        # scale isn't stale from a frame where the torso wasn't visible.
+        if (
+            len(self.hip_positions) < kernel_size
+            or self.current_distance <= 0.0
+        ):
             metrics["vertical_oscillation"] = 0.0
         else:
-            moving_avg = np.convolve(list(self.hip_positions), np.ones(5), "valid") / 5
-            oscillation = (np.max(moving_avg) - np.min(moving_avg)) / 2
-            metrics["vertical_oscillation"] = (
-                oscillation * (self.current_distance / FOCAL_LENGTH_PX)
-            ) / 20
+            moving_avg = (
+                np.convolve(list(self.hip_positions), np.ones(kernel_size), "valid")
+                / kernel_size
+            )
+            # Peak-to-peak hip vertical excursion (pixels) converted to cm via
+            # the pinhole-camera scale at the runner's depth:
+            #   cm_per_px = current_distance_cm / FOCAL_LENGTH_PX
+            oscillation_px = float(np.max(moving_avg) - np.min(moving_avg))
+            cm_per_px = self.current_distance / FOCAL_LENGTH_PX
+            metrics["vertical_oscillation"] = oscillation_px * cm_per_px
 
         metrics["vertical_oscillation_assessment"] = (
             AssessmentCalculator.assess_vertical_oscillation(

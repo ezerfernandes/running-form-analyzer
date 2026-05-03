@@ -6,7 +6,7 @@
 This project provides a real-time running analysis tool using computer vision and pose estimation techniques. It captures video input from a camera, analyzes the runner's form, and provides instant feedback on various biomechanical metrics.
 
 ## Features
-- Real-time pose estimation using multiple model options (MoveNet, BlazePose, Lite-HRNet)
+- Real-time pose estimation using multiple model options (MoveNet, BlazePose)
 - Calculation of key running metrics (e.g., head angle, trunk angle, knee angles, arm swing)
 - Visual feedback with adjustable display modes (angles, metrics, recommendations)
 - Audio feedback for immediate form corrections
@@ -39,9 +39,10 @@ uv run python main.py --model_type blazepose --side right --runner_height 182
 ```
 
 Options:
-- `--model_type`: Choose from 'movenet', 'blazepose', or 'lite_hrnet' (default: blazepose)
+- `--model_type`: Choose from 'movenet' or 'blazepose' (default: blazepose)
 - `--side`: 'left' or 'right', depending on which side of the runner is facing the camera (default: right)
 - `--runner_height`: Height of the runner in cm (default: 182)
+- `--sex`: 'male' or 'female'; selects the torso-length anthropometric ratio (default: male)
 
 ## Keypoint Mapping
 All models output keypoints using the [COCO 17-keypoint format](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml):

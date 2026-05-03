@@ -12,10 +12,17 @@ class FootStrikeDetector:
         detection_axis: Literal["x", "y"] = "x",
         adaptive_window: int = 50,
         initial_threshold: float = 0.02,
+        min_stride_time: float = 0.4,
     ):
+        # min_stride_time bounds the cadence the detector accepts: a stride
+        # closer than this to the previous strike is treated as a duplicate.
+        # The 0.4s default caps a single foot at ~150 strikes/min (≈300 spm
+        # total) — fine for distance running. Sprinters/track athletes can
+        # lower it (e.g. 0.2s allows up to ~600 spm).
         self.filter_type = filter_type
         self.window_size = window_size
         self.detection_axis = detection_axis
+        self.min_stride_time = min_stride_time
         self.positions = deque(maxlen=window_size)
         self.timestamps = deque(maxlen=window_size)
         self.last_foot_strike_time = None
@@ -76,7 +83,7 @@ class FootStrikeDetector:
         if foot_strike_detected:
             if (
                 self.last_foot_strike_time is None
-                or (timestamp - self.last_foot_strike_time) > 0.4
+                or (timestamp - self.last_foot_strike_time) > self.min_stride_time
             ):  # Prevent false positives
                 if self.last_foot_strike_time is not None:
                     stride_time = timestamp - self.last_foot_strike_time
