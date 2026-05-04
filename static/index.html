@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Running Form Analyzer</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b0d10;
+    --fg: #e8edf2;
+    --accent: #4ad991;
+    --warn: #ffb454;
+    --bad: #ff6b6b;
+    --muted: #7a838d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1a1f25;
+  }
+  h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  #status { font-size: 12px; color: var(--muted); }
+  #status.ok { color: var(--accent); }
+  #status.bad { color: var(--bad); }
+  #preview {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    background: #000;
+  }
+  main { padding: 16px; flex: 1; }
+  #recs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    min-height: 80px;
+  }
+  .rec {
+    padding: 10px 14px;
+    background: #1a1f25;
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .rec.good { border-left-color: var(--accent); }
+  #summary {
+    font-size: 12px;
+    color: var(--muted);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+  #summary span:nth-child(odd) { color: var(--fg); font-weight: 500; }
+  footer {
+    padding: 12px 16px;
+    border-top: 1px solid #1a1f25;
+    display: flex;
+    gap: 8px;
+  }
+  button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #start { background: var(--accent); color: #0b0d10; }
+  #stop { background: #2a3038; color: var(--fg); }
+  button:disabled { opacity: 0.4; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Running Form Analyzer</h1>
+  <div id="status">idle</div>
+</header>
+<video id="preview" autoplay muted playsinline></video>
+<canvas id="canvas" hidden></canvas>
+<main>
+  <div id="recs"></div>
+  <div id="summary">
+    <span>Elapsed</span><span id="elapsed">0.0 s</span>
+    <span>Steps/min</span><span id="spm">0.0</span>
+    <span>Foot strike</span><span id="strike">—</span>
+  </div>
+</main>
+<footer>
+  <button id="start">Start</button>
+  <button id="stop" disabled>Stop</button>
+</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

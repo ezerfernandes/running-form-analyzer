@@ -1,11 +1,33 @@
 import argparse
+
 from core.config import Config
-from core.analyzer import Analyzer
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description="Running Analysis using various pose estimation models"
+    )
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="local",
+        choices=["local", "server"],
+        help=(
+            "local = open the laptop webcam and show the analysis window. "
+            "server = serve the phone-as-camera streaming app over HTTPS on the LAN."
+        ),
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Server-mode bind address (ignored in local mode).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8443,
+        help="Server-mode HTTPS port (ignored in local mode).",
     )
     parser.add_argument(
         "--model_type",
@@ -37,8 +59,14 @@ def parse_arguments():
 def main():
     args = parse_arguments()
     config = Config.from_args(args)
-    analyzer = Analyzer(config)
-    analyzer.run()
+    if args.mode == "server":
+        from server import serve
+
+        serve(config, host=args.host, port=args.port)
+    else:
+        from core.analyzer import Analyzer
+
+        Analyzer(config).run()
 
 
 if __name__ == "__main__":

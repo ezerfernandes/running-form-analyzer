@@ -8,11 +8,13 @@ from metrics.distance_metrics import DistanceMetrics
 
 
 class Metrics:
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, enable_audio: bool = True):
         self.config = config
         self.angle_metrics = AngleMetrics(config)
         self.distance_metrics = DistanceMetrics(config)
-        self.audio_provider = AudioFeedbackProvider()
+        # Server mode disables the laptop's pyttsx3 speaker — phone TTS is the
+        # delivery path there, and pyttsx3.init() can also fail in headless envs.
+        self.audio_provider = AudioFeedbackProvider() if enable_audio else None
         self.recommendations_calculator = Recommendation(
             window_size=30,
             consistency_threshold=0.7,
